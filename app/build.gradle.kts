@@ -7,11 +7,7 @@ plugins {
 
 android {
     namespace = "com.smartfactory.ai"
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-    }
+    compileSdk = 37
 
     ksp {
         arg("room.schemaLocation", "$projectDir/schemas")
