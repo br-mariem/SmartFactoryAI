@@ -1,0 +1,157 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "ded460fdfed83f597d58566d42c4d46a",
+    "entities": [
+      {
+        "tableName": "machines",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`machine_id` TEXT NOT NULL, `nom` TEXT NOT NULL, `zone_usine` TEXT NOT NULL, `type_equipement` TEXT NOT NULL, `seuil_temp_critique` REAL NOT NULL, `seuil_vibration_max` REAL NOT NULL, `statut_courant` TEXT NOT NULL DEFAULT 'OK', PRIMARY KEY(`machine_id`))",
+        "fields": [
+          {
+            "fieldPath": "machineId",
+            "columnName": "machine_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nom",
+            "columnName": "nom",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "zoneUsine",
+            "columnName": "zone_usine",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "typeEquipement",
+            "columnName": "type_equipement",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "seuilTempCritique",
+            "columnName": "seuil_temp_critique",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "seuilVibrationMax",
+            "columnName": "seuil_vibration_max",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "statutCourant",
+            "columnName": "statut_courant",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'OK'"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "machine_id"
+          ]
+        }
+      },
+      {
+        "tableName": "sensor_telemetry",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `machine_id` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `temperature` REAL NOT NULL, `vibration` REAL NOT NULL, `pression` REAL NOT NULL, `vitesse_rotation` REAL NOT NULL, `is_anomalie` INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(`machine_id`) REFERENCES `machines`(`machine_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "machineId",
+            "columnName": "machine_id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "temperature",
+            "columnName": "temperature",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vibration",
+            "columnName": "vibration",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "pression",
+            "columnName": "pression",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "vitesseRotation",
+            "columnName": "vitesse_rotation",
+            "affinity": "REAL",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isAnomalie",
+            "columnName": "is_anomalie",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "idx_telemetry_machine_time",
+            "unique": false,
+            "columnNames": [
+              "machine_id",
+              "timestamp"
+            ],
+            "orders": [
+              "ASC",
+              "DESC"
+            ],
+            "createSql": "CREATE INDEX IF NOT EXISTS `idx_telemetry_machine_time` ON `${TABLE_NAME}` (`machine_id` ASC, `timestamp` DESC)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "machines",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "machine_id"
+            ],
+            "referencedColumns": [
+              "machine_id"
+            ]
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ded460fdfed83f597d58566d42c4d46a')"
+    ]
+  }
+}
