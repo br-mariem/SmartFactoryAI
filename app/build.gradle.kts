@@ -59,6 +59,9 @@ dependencies {
     implementation(libs.room.runtime)
     ksp(libs.room.compiler)
 
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
@@ -66,4 +69,10 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
+
+    // ONNX Runtime (IA locale)
+    implementation(libs.onnxruntime.android)
+
+    // HiveMQ MQTT Client (Communication capteurs)
+    implementation(libs.hivemq.mqtt.client)
 }
