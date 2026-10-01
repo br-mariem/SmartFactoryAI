@@ -2,77 +2,133 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "ded460fdfed83f597d58566d42c4d46a",
+    "identityHash": "60ad44da7e0813ddef60b071e1a4852e",
     "entities": [
       {
-        "tableName": "machines",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`machine_id` TEXT NOT NULL, `nom` TEXT NOT NULL, `zone_usine` TEXT NOT NULL, `type_equipement` TEXT NOT NULL, `seuil_temp_critique` REAL NOT NULL, `seuil_vibration_max` REAL NOT NULL, `statut_courant` TEXT NOT NULL DEFAULT 'OK', PRIMARY KEY(`machine_id`))",
+        "tableName": "maintenance_docs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`docId` TEXT NOT NULL, `title` TEXT NOT NULL, `machineType` TEXT NOT NULL, PRIMARY KEY(`docId`))",
         "fields": [
           {
-            "fieldPath": "machineId",
-            "columnName": "machine_id",
+            "fieldPath": "docId",
+            "columnName": "docId",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "nom",
-            "columnName": "nom",
+            "fieldPath": "title",
+            "columnName": "title",
             "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "zoneUsine",
-            "columnName": "zone_usine",
+            "fieldPath": "machineType",
+            "columnName": "machineType",
             "affinity": "TEXT",
             "notNull": true
-          },
-          {
-            "fieldPath": "typeEquipement",
-            "columnName": "type_equipement",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "seuilTempCritique",
-            "columnName": "seuil_temp_critique",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
-            "fieldPath": "seuilVibrationMax",
-            "columnName": "seuil_vibration_max",
-            "affinity": "REAL",
-            "notNull": true
-          },
-          {
-            "fieldPath": "statutCourant",
-            "columnName": "statut_courant",
-            "affinity": "TEXT",
-            "notNull": true,
-            "defaultValue": "'OK'"
           }
         ],
         "primaryKey": {
           "autoGenerate": false,
           "columnNames": [
-            "machine_id"
+            "docId"
           ]
         }
       },
       {
-        "tableName": "sensor_telemetry",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `machine_id` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `temperature` REAL NOT NULL, `vibration` REAL NOT NULL, `pression` REAL NOT NULL, `vitesse_rotation` REAL NOT NULL, `is_anomalie` INTEGER NOT NULL DEFAULT 0, FOREIGN KEY(`machine_id`) REFERENCES `machines`(`machine_id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "tableName": "doc_chunks",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chunkId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `docId` TEXT NOT NULL, `chunkText` TEXT NOT NULL)",
         "fields": [
           {
-            "fieldPath": "id",
-            "columnName": "id",
+            "fieldPath": "chunkId",
+            "columnName": "chunkId",
             "affinity": "INTEGER",
             "notNull": true
           },
           {
-            "fieldPath": "machineId",
-            "columnName": "machine_id",
+            "fieldPath": "docId",
+            "columnName": "docId",
             "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "chunkText",
+            "columnName": "chunkText",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "chunkId"
+          ]
+        }
+      },
+      {
+        "tableName": "chunk_embeddings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`chunkId` INTEGER NOT NULL, `embeddingBlob` BLOB NOT NULL, PRIMARY KEY(`chunkId`))",
+        "fields": [
+          {
+            "fieldPath": "chunkId",
+            "columnName": "chunkId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "embeddingBlob",
+            "columnName": "embeddingBlob",
+            "affinity": "BLOB",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "chunkId"
+          ]
+        }
+      },
+      {
+        "tableName": "fts_doc_chunks",
+        "createSql": "CREATE VIRTUAL TABLE IF NOT EXISTS `${TABLE_NAME}` USING FTS4(`chunkText` TEXT NOT NULL, content=`doc_chunks`)",
+        "fields": [
+          {
+            "fieldPath": "chunkText",
+            "columnName": "chunkText",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": []
+        },
+        "ftsVersion": "FTS4",
+        "ftsOptions": {
+          "tokenizer": "simple",
+          "tokenizerArgs": [],
+          "contentTable": "doc_chunks",
+          "languageIdColumnName": "",
+          "matchInfo": "FTS4",
+          "notIndexedColumns": [],
+          "prefixSizes": [],
+          "preferredOrder": "ASC"
+        },
+        "contentSyncTriggers": [
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_fts_doc_chunks_BEFORE_UPDATE BEFORE UPDATE ON `doc_chunks` BEGIN DELETE FROM `fts_doc_chunks` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_fts_doc_chunks_BEFORE_DELETE BEFORE DELETE ON `doc_chunks` BEGIN DELETE FROM `fts_doc_chunks` WHERE `docid`=OLD.`rowid`; END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_fts_doc_chunks_AFTER_UPDATE AFTER UPDATE ON `doc_chunks` BEGIN INSERT INTO `fts_doc_chunks`(`docid`, `chunkText`) VALUES (NEW.`rowid`, NEW.`chunkText`); END",
+          "CREATE TRIGGER IF NOT EXISTS room_fts_content_sync_fts_doc_chunks_AFTER_INSERT AFTER INSERT ON `doc_chunks` BEGIN INSERT INTO `fts_doc_chunks`(`docid`, `chunkText`) VALUES (NEW.`rowid`, NEW.`chunkText`); END"
+        ]
+      },
+      {
+        "tableName": "agent_audit_trail",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`auditId` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `timestamp` INTEGER NOT NULL, `machineId` TEXT NOT NULL, `aiReasoning` TEXT NOT NULL, `proposedAction` TEXT NOT NULL, `status` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "auditId",
+            "columnName": "auditId",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -82,76 +138,41 @@
             "notNull": true
           },
           {
-            "fieldPath": "temperature",
-            "columnName": "temperature",
-            "affinity": "REAL",
+            "fieldPath": "machineId",
+            "columnName": "machineId",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "vibration",
-            "columnName": "vibration",
-            "affinity": "REAL",
+            "fieldPath": "aiReasoning",
+            "columnName": "aiReasoning",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "pression",
-            "columnName": "pression",
-            "affinity": "REAL",
+            "fieldPath": "proposedAction",
+            "columnName": "proposedAction",
+            "affinity": "TEXT",
             "notNull": true
           },
           {
-            "fieldPath": "vitesseRotation",
-            "columnName": "vitesse_rotation",
-            "affinity": "REAL",
+            "fieldPath": "status",
+            "columnName": "status",
+            "affinity": "TEXT",
             "notNull": true
-          },
-          {
-            "fieldPath": "isAnomalie",
-            "columnName": "is_anomalie",
-            "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "0"
           }
         ],
         "primaryKey": {
           "autoGenerate": true,
           "columnNames": [
-            "id"
+            "auditId"
           ]
-        },
-        "indices": [
-          {
-            "name": "idx_telemetry_machine_time",
-            "unique": false,
-            "columnNames": [
-              "machine_id",
-              "timestamp"
-            ],
-            "orders": [
-              "ASC",
-              "DESC"
-            ],
-            "createSql": "CREATE INDEX IF NOT EXISTS `idx_telemetry_machine_time` ON `${TABLE_NAME}` (`machine_id` ASC, `timestamp` DESC)"
-          }
-        ],
-        "foreignKeys": [
-          {
-            "table": "machines",
-            "onDelete": "CASCADE",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "machine_id"
-            ],
-            "referencedColumns": [
-              "machine_id"
-            ]
-          }
-        ]
+        }
       }
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ded460fdfed83f597d58566d42c4d46a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '60ad44da7e0813ddef60b071e1a4852e')"
     ]
   }
 }
