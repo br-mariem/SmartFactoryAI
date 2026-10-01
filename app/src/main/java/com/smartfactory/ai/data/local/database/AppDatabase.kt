@@ -19,9 +19,11 @@ import com.smartfactory.ai.data.local.database.entity.SensorTelemetryEntity
 
 @Database(
     entities = [
-        MachineEntity::class,          // T03 (A)
-        SensorTelemetryEntity::class,  // T03 (A)
-        MaintenanceDocEntity::class,   // T04 (B)
+        // --- Tâche 03 (Personne A) ---
+        MachineEntity::class,
+        SensorTelemetryEntity::class,
+        // --- Tâche 04 (Personne B) ---
+        MaintenanceDocEntity::class,
         DocChunkEntity::class,
         ChunkEmbeddingEntity::class,
         FtsDocChunkEntity::class,
@@ -32,9 +34,14 @@ import com.smartfactory.ai.data.local.database.entity.SensorTelemetryEntity
 )
 @TypeConverters(VectorConverter::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun maintenanceDocDao(): MaintenanceDocDao
-    abstract fun auditDao(): AuditDao
+    // --- Tâche 03 (Personne A) ---
     abstract fun machineDao(): MachineDao
     abstract fun telemetryDao(): TelemetryDao
-    abstract fun embeddingDao(): EmbeddingDao      // T05
+
+    // --- Tâche 04 (Personne B) ---
+    abstract fun maintenanceDocDao(): MaintenanceDocDao
+    abstract fun auditDao(): AuditDao
+
+    // --- Tâche 05 (Personne A) ---
+    abstract fun embeddingDao(): EmbeddingDao
 }
