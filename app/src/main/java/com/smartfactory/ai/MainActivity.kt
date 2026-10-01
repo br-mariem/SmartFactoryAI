@@ -11,6 +11,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.smartfactory.ai.presentation.dashboard.DashboardScreen
 import com.smartfactory.ai.ui.theme.SmartFactoryAITheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -21,14 +22,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SmartFactoryAITheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "SmartFactory Initialisé",
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-                    }
-                }
+                DashboardScreen()
             }
         }
     }
