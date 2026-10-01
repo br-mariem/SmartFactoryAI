@@ -45,6 +45,21 @@ interface EmbeddingDao {
     @Query("SELECT * FROM chunk_embeddings")
     suspend fun getAllEmbeddings(): List<ChunkEmbeddingEntity>
 
+    /**
+     * T07 : recherche par mots-clés dans l'index FTS.
+     * @param ftsQuery requête FTS, par exemple : "pompe" OR "surchauffe"
+     */
+    @Query(
+        "SELECT doc_chunks.* FROM doc_chunks " +
+                "JOIN fts_doc_chunks ON doc_chunks.chunkId = fts_doc_chunks.rowid " +
+                "WHERE fts_doc_chunks MATCH :ftsQuery LIMIT :limit"
+    )
+    suspend fun searchByKeywords(ftsQuery: String, limit: Int = 50): List<DocChunkEntity>
+
+    /** T07 : le texte des chunks retenus par la fusion. */
+    @Query("SELECT * FROM doc_chunks WHERE chunkId IN (:chunkIds)")
+    suspend fun getChunksByIds(chunkIds: List<Int>): List<DocChunkEntity>
+
     @Query("DELETE FROM chunk_embeddings")
     suspend fun deleteAllEmbeddings()
 
