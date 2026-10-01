@@ -75,15 +75,30 @@ class OnnxEmbeddingEngine @Inject constructor(
     }
 
     /** Copie le modèle des assets vers le stockage interne (une seule fois). */
+    /**
+     * Copie le modèle des assets vers le stockage interne.
+     * La copie est refaite à chaque (ré)installation de l'app, pour ne jamais
+     * garder une ancienne version du modèle.
+     */
     private fun modelFile(): File {
-        val fichier = File(context.filesDir, "models/all-MiniLM-L6-v2.onnx")
-        if (!fichier.exists() || fichier.length() == 0L) {
-            fichier.parentFile?.mkdirs()
-            val temp = File(fichier.parentFile, "${fichier.name}.tmp")
+        val dossier = File(context.filesDir, "models").apply { mkdirs() }
+        val fichier = File(dossier, "all-MiniLM-L6-v2.onnx")
+        val marqueur = File(dossier, "model.version")
+
+        // lastUpdateTime change à chaque installation ou mise à jour de l'app
+        val versionApk = context.packageManager
+            .getPackageInfo(context.packageName, 0).lastUpdateTime.toString()
+        val aJour = fichier.exists() && marqueur.exists() && marqueur.readText() == versionApk
+
+        if (!aJour) {
+            val temp = File(dossier, "model.tmp")
             context.assets.open(MODEL_ASSET).use { entree ->
                 temp.outputStream().use { sortie -> entree.copyTo(sortie) }
             }
+            fichier.delete()
             check(temp.renameTo(fichier)) { "Impossible de copier le modèle ONNX" }
+            marqueur.writeText(versionApk)
+            Log.i(TAG, "Modèle copié : ${fichier.length()} octets")
         }
         return fichier
     }
