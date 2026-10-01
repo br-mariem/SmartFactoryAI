@@ -1,0 +1,19 @@
+TITRE: SOP-010 - Sécurité : consignation et barrières immatérielles presse
+TYPE_EQUIPEMENT: PRESSE
+NORME: ISO-13849
+VERSION: v1.0 - 2026
+
+## Domaine d'application
+Cette procédure définit les règles de sécurité avant toute intervention sur les presses hydrauliques PRESS_F1 et PRESS_F2, ainsi que le contrôle des barrières immatérielles qui protègent la zone de travail. Elle s'applique à tout le personnel de production et de maintenance. Document fictif rédigé pour le projet pédagogique SmartFactory Edge-AI.
+
+## Symptômes et seuils d'alerte
+Une barrière immatérielle en défaut empêche le démarrage du cycle et affiche un voyant rouge permanent. Un arrêt de la presse sans raison apparente, un temps d'arrêt du coulisseau supérieur à 200 millisecondes ou un voyant qui clignote signalent un problème de sécurité qui doit être traité avant toute reprise de production.
+
+## Causes probables
+Les causes probables sont un émetteur ou un récepteur désaligné après un choc, des optiques sales, un câble endommagé, un relais de sécurité défaillant ou une électrovanne de sécurité usée qui allonge le temps d'arrêt.
+
+## Procédure corrective immédiate
+Ne jamais shunter ni désactiver une barrière immatérielle. Pour intervenir dans la zone de la presse, appliquer la consignation en cinq étapes : séparer la machine de ses énergies, condamner les sectionneurs avec un cadenas personnel, dissiper les énergies résiduelles en déchargeant l'accumulateur hydraulique, vérifier l'absence d'énergie, puis baliser la zone. Nettoyer les optiques et vérifier l'alignement de la barrière.
+
+## Vérification et remise en service
+Tester la barrière avec la tige d'essai du fabricant sur toute la hauteur de la zone protégée : le coulisseau doit s'arrêter à chaque passage. Mesurer le temps d'arrêt : il doit rester inférieur à 200 millisecondes. Seule la personne qui a posé le cadenas peut le retirer. Noter le test de sécurité dans le registre avant de rendre la presse à la production.

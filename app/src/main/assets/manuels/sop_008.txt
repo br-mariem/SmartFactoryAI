@@ -1,0 +1,19 @@
+TITRE: SOP-008 - Maintenance : réducteur de convoyeur
+TYPE_EQUIPEMENT: MACHINE_OUTIL
+NORME: ISO-6336
+VERSION: v1.1 - 2026
+
+## Domaine d'application
+Cette procédure couvre l'entretien des réducteurs à engrenages GEAR_E1 et GEAR_E2 qui entraînent les convoyeurs de la ligne d'assemblage. Elle traite de la lubrification, de l'échauffement et du bruit. Elle s'adresse aux techniciens de maintenance de niveau 1 et 2. Document fictif rédigé pour le projet pédagogique SmartFactory Edge-AI.
+
+## Symptômes et seuils d'alerte
+La température normale du carter est inférieure à 70 °C. Entre 70 °C et 85 °C, l'état est en vigilance. Au-delà de 85 °C, l'huile se dégrade rapidement et le réducteur doit être arrêté. Un bruit de claquement régulier indique une dent abîmée, un sifflement indique un défaut de lubrification, et une fuite d'huile au niveau des joints doit être traitée rapidement.
+
+## Causes probables
+Les causes principales sont un niveau d'huile insuffisant, une huile usée ou d'une viscosité inadaptée, une surcharge du convoyeur, un désalignement avec le moteur, des joints d'étanchéité usés et une usure des dentures ou des roulements.
+
+## Procédure corrective immédiate
+Arrêter le convoyeur et consigner le moteur. Vérifier le niveau d'huile au bouchon de niveau et compléter avec l'huile préconisée. Rechercher l'origine des fuites et remplacer les joints si nécessaire. Vérifier que la charge du convoyeur ne dépasse pas la charge nominale. Si l'huile contient des particules métalliques visibles, planifier une inspection des dentures.
+
+## Vérification et remise en service
+Vidanger l'huile toutes les 5000 heures de fonctionnement ou une fois par an. Après intervention, faire tourner le convoyeur à vide pendant 15 minutes, puis en charge. Vérifier que la température du carter se stabilise sous 70 °C et que le bruit est régulier. Noter la date de vidange et la quantité d'huile dans le journal.

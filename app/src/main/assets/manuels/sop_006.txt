@@ -1,0 +1,19 @@
+TITRE: SOP-006 - Maintenance : vibrations et alignement moteur
+TYPE_EQUIPEMENT: MOTEUR_ASYNCHRONE
+NORME: IEC-60034
+VERSION: v1.2 - 2026
+
+## Domaine d'application
+Cette procédure couvre la surveillance des vibrations et le contrôle de l'alignement des moteurs asynchrones MOT_C1 à MOT_C3 avec leur machine entraînée. Elle s'adresse aux techniciens de maintenance de niveau 2. Document fictif rédigé pour le projet pédagogique SmartFactory Edge-AI.
+
+## Symptômes et seuils d'alerte
+La vibration est mesurée sur les paliers avant et arrière du moteur. Jusqu'à 2,3 mm/s, l'état est bon. De 2,3 à 4,5 mm/s, l'état est acceptable. Au-delà de 4,5 mm/s, une intervention est nécessaire, et au-delà de 7,1 mm/s le moteur doit être arrêté. Une vibration qui disparaît dès la coupure de l'alimentation indique une origine électrique, tandis qu'une vibration qui diminue lentement indique une origine mécanique.
+
+## Causes probables
+Les causes mécaniques sont le désalignement de l'accouplement, le balourd du rotor ou de la poulie, l'usure des roulements et le desserrage des pattes de fixation. Les causes électriques sont une barre de rotor cassée ou un entrefer irrégulier.
+
+## Procédure corrective immédiate
+Vérifier le serrage des pattes de fixation et l'absence de cale manquante, car un pied bancal déforme la carcasse. Contrôler l'alignement au laser : le décalage doit être inférieur à 0,05 mm et l'écart angulaire inférieur à 0,05 mm pour 100 mm. Corriger avec des cales calibrées. Si la vibration est d'origine électrique, faire contrôler le rotor par un atelier de bobinage.
+
+## Vérification et remise en service
+Après correction, mesurer de nouveau la vibration en charge sur les deux paliers. Elle doit être inférieure à 2,3 mm/s. Vérifier la température des paliers après 30 minutes de fonctionnement. Noter les valeurs d'alignement et de vibration dans le journal de maintenance.

@@ -1,0 +1,19 @@
+TITRE: SOP-003 - Procédure d'urgence : surpression compresseur
+TYPE_EQUIPEMENT: COMPRESSEUR
+NORME: ISO-1217
+VERSION: v3.0 - 2026
+
+## Domaine d'application
+Cette procédure s'applique aux compresseurs d'air à vis COMP_B1 et COMP_B2 qui alimentent le réseau d'air comprimé de l'atelier. Elle décrit la conduite à tenir en cas de pression de refoulement anormalement haute. Elle concerne les opérateurs et les techniciens de niveau 1 et 2. Document fictif rédigé pour le projet pédagogique SmartFactory Edge-AI.
+
+## Symptômes et seuils d'alerte
+La pression normale de service est comprise entre 7 et 8 bar. Entre 8 et 9 bar, l'état est en vigilance. Au-delà de 9 bar, l'alerte est critique. La soupape de sécurité est tarée à 10 bar : si elle s'ouvre, un sifflement fort et continu est entendu. Une pression qui monte alors que la consommation d'air est faible indique un défaut de régulation.
+
+## Causes probables
+Les causes probables sont un pressostat ou un capteur de pression défaillant, une électrovanne de décharge bloquée en position fermée, une vanne de régulation d'aspiration grippée, ou une vanne fermée par erreur sur le réseau de distribution. Un séparateur huile-air colmaté provoque aussi une hausse de la pression interne.
+
+## Procédure corrective immédiate
+Premièrement, passer le compresseur en mode décharge depuis le pupitre. Deuxièmement, si la pression ne baisse pas sous 8 bar en 2 minutes, arrêter le compresseur avec le bouton d'arrêt normal, jamais avec l'arrêt d'urgence sauf danger immédiat. Troisièmement, vérifier que les vannes du réseau sont ouvertes. Ne jamais bloquer ou démonter la soupape de sécurité. Consigner le compresseur avant toute intervention sur le circuit.
+
+## Vérification et remise en service
+Contrôler le capteur de pression en le comparant à un manomètre étalon. Tester l'électrovanne de décharge. Remplacer le séparateur huile-air si sa perte de charge dépasse 1 bar. Redémarrer et vérifier que le compresseur passe bien en décharge à 8 bar et recharge à 7 bar. Noter les valeurs dans le journal de maintenance.

@@ -1,0 +1,19 @@
+TITRE: SOP-005 - Procédure d'urgence : surchauffe moteur asynchrone
+TYPE_EQUIPEMENT: MOTEUR_ASYNCHRONE
+NORME: IEC-60034
+VERSION: v1.8 - 2026
+
+## Domaine d'application
+Cette procédure s'applique aux moteurs électriques asynchrones triphasés MOT_C1 à MOT_C3 qui entraînent les convoyeurs et les ventilateurs de l'atelier. Elle décrit la conduite à tenir en cas d'échauffement anormal du moteur. Elle concerne les électriciens habilités et les techniciens de niveau 2. Document fictif rédigé pour le projet pédagogique SmartFactory Edge-AI.
+
+## Symptômes et seuils d'alerte
+Pour un moteur de classe d'isolation F, la température de la carcasse ne doit pas dépasser 90 °C en fonctionnement normal. Entre 90 °C et 110 °C, l'état est en vigilance. Au-delà de 110 °C, l'alerte est critique et l'isolation des bobinages risque d'être endommagée. Une odeur de vernis brûlé, un courant supérieur au courant nominal de la plaque ou un bourdonnement anormal accompagnent souvent la surchauffe.
+
+## Causes probables
+Les causes principales sont une surcharge mécanique de la machine entraînée, une coupure de phase qui fait fonctionner le moteur sur deux phases, un déséquilibre de tension entre phases supérieur à 2 %, un ventilateur de refroidissement cassé ou des ailettes encrassées, et des démarrages trop fréquents.
+
+## Procédure corrective immédiate
+Premièrement, réduire la charge de la machine entraînée si c'est possible. Deuxièmement, mesurer le courant sur les trois phases avec une pince ampèremétrique : les trois valeurs doivent être proches et inférieures au courant nominal. Troisièmement, si une phase est absente ou si la température dépasse 110 °C, arrêter le moteur et le consigner électriquement. Seul un électricien habilité peut intervenir sur le bornier.
+
+## Vérification et remise en service
+Nettoyer les ailettes de la carcasse et vérifier le capot du ventilateur. Mesurer la résistance d'isolement entre bobinages et masse : elle doit être supérieure à 1 mégohm. Contrôler le serrage des connexions du bornier. Redémarrer et vérifier pendant 30 minutes que le courant reste inférieur au courant nominal et que la température se stabilise sous 90 °C.

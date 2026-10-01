@@ -5,18 +5,23 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.smartfactory.ai.data.local.database.converter.VectorConverter
 import com.smartfactory.ai.data.local.database.dao.AuditDao
+import com.smartfactory.ai.data.local.database.dao.EmbeddingDao
+import com.smartfactory.ai.data.local.database.dao.MachineDao
 import com.smartfactory.ai.data.local.database.dao.MaintenanceDocDao
+import com.smartfactory.ai.data.local.database.dao.TelemetryDao
 import com.smartfactory.ai.data.local.database.entity.AgentAuditEntity
 import com.smartfactory.ai.data.local.database.entity.ChunkEmbeddingEntity
 import com.smartfactory.ai.data.local.database.entity.DocChunkEntity
 import com.smartfactory.ai.data.local.database.entity.FtsDocChunkEntity
+import com.smartfactory.ai.data.local.database.entity.MachineEntity
 import com.smartfactory.ai.data.local.database.entity.MaintenanceDocEntity
-import com.smartfactory.ai.data.local.database.dao.MachineDao
-import com.smartfactory.ai.data.local.database.dao.TelemetryDao
+import com.smartfactory.ai.data.local.database.entity.SensorTelemetryEntity
 
 @Database(
     entities = [
-        MaintenanceDocEntity::class,
+        MachineEntity::class,          // T03 (A)
+        SensorTelemetryEntity::class,  // T03 (A)
+        MaintenanceDocEntity::class,   // T04 (B)
         DocChunkEntity::class,
         ChunkEmbeddingEntity::class,
         FtsDocChunkEntity::class,
@@ -31,4 +36,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun auditDao(): AuditDao
     abstract fun machineDao(): MachineDao
     abstract fun telemetryDao(): TelemetryDao
+    abstract fun embeddingDao(): EmbeddingDao      // T05
 }

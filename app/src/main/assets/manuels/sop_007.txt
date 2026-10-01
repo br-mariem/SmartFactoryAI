@@ -1,0 +1,19 @@
+TITRE: SOP-007 - Procédure d'urgence : surchauffe broche CNC
+TYPE_EQUIPEMENT: MACHINE_OUTIL
+NORME: ISO-230
+VERSION: v2.0 - 2026
+
+## Domaine d'application
+Cette procédure s'applique aux centres d'usinage à commande numérique CNC_D1 et CNC_D2. Elle décrit la conduite à tenir en cas d'échauffement anormal de la broche. Elle concerne les opérateurs régleurs et les techniciens de niveau 2. Document fictif rédigé pour le projet pédagogique SmartFactory Edge-AI.
+
+## Symptômes et seuils d'alerte
+La température normale de la broche se situe entre 30 °C et 45 °C. Entre 45 °C et 55 °C, l'état est en vigilance. Au-delà de 55 °C, la commande numérique affiche une alarme et réduit la vitesse. Une dérive des cotes usinées, un bruit aigu de la broche ou une vibration à haute vitesse accompagnent souvent la surchauffe.
+
+## Causes probables
+Les causes probables sont un groupe de refroidissement de broche arrêté ou en défaut, un niveau de liquide de refroidissement trop bas, un défaut de lubrification air-huile des roulements de broche, une vitesse de rotation trop élevée pour l'outil utilisé, ou des roulements de broche usés.
+
+## Procédure corrective immédiate
+Premièrement, terminer ou interrompre le cycle en cours et arrêter la broche. Deuxièmement, vérifier que le groupe de refroidissement fonctionne et que son niveau est correct. Troisièmement, contrôler le réservoir de lubrification air-huile. Laisser la broche refroidir sous 35 °C avant de redémarrer. Ne jamais forcer le redémarrage en acquittant l'alarme plusieurs fois de suite.
+
+## Vérification et remise en service
+Faire un cycle de chauffe de la broche à vitesse progressive : 10 minutes à 25 %, 10 minutes à 50 %, puis 10 minutes à 75 % de la vitesse maximale. La température doit rester sous 45 °C. Usiner une pièce de contrôle et vérifier ses cotes. Si la surchauffe revient, faire expertiser les roulements de broche.

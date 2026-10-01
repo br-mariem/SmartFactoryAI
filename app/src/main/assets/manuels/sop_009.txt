@@ -1,0 +1,19 @@
+TITRE: SOP-009 - Procédure d'urgence : chute de pression hydraulique presse
+TYPE_EQUIPEMENT: PRESSE
+NORME: ISO-4413
+VERSION: v2.3 - 2026
+
+## Domaine d'application
+Cette procédure s'applique aux presses hydrauliques PRESS_F1 et PRESS_F2 de l'atelier d'emboutissage. Elle décrit la conduite à tenir en cas de pression hydraulique insuffisante ou instable. Elle concerne les opérateurs et les techniciens de niveau 2. Document fictif rédigé pour le projet pédagogique SmartFactory Edge-AI.
+
+## Symptômes et seuils d'alerte
+La pression de travail normale est de 180 bar. Entre 160 et 180 bar, la presse fonctionne mais les pièces risquent d'être mal formées. Sous 150 bar, l'alerte est critique et le cycle doit être arrêté. Des mouvements saccadés du coulisseau, un bruit de pompe hydraulique anormal ou une température d'huile supérieure à 60 °C accompagnent souvent la chute de pression.
+
+## Causes probables
+Les causes probables sont une fuite sur un flexible ou un raccord, un niveau d'huile trop bas dans le réservoir, un filtre d'aspiration colmaté, un limiteur de pression mal réglé ou bloqué ouvert, une usure de la pompe hydraulique, ou des joints de vérin usés qui laissent passer l'huile.
+
+## Procédure corrective immédiate
+Premièrement, arrêter le cycle et placer le coulisseau en position basse sécurisée ou sur cales. Deuxièmement, couper la pompe et décharger l'accumulateur avant toute intervention. Troisièmement, rechercher visuellement les fuites, sans jamais passer la main sur un flexible sous pression, car un jet d'huile peut perforer la peau. Vérifier le niveau d'huile et l'indicateur de colmatage du filtre.
+
+## Vérification et remise en service
+Après réparation, compléter le niveau d'huile, purger l'air du circuit en faisant plusieurs cycles à vide et à basse pression. Contrôler la pression avec un manomètre étalon : elle doit atteindre 180 bar de façon stable. Vérifier l'absence de fuite après 10 cycles. Noter l'intervention et les pièces changées dans le journal de maintenance.

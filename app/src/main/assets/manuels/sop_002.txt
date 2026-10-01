@@ -1,0 +1,19 @@
+TITRE: SOP-002 - Maintenance préventive : vibrations et roulements de pompe
+TYPE_EQUIPEMENT: POMPE
+NORME: ISO-10816
+VERSION: v1.4 - 2026
+
+## Domaine d'application
+Cette procédure couvre la surveillance vibratoire des pompes centrifuges PUMP_A1 et PUMP_A2. Elle définit les seuils de vibration, la méthode de mesure et le remplacement des roulements. Elle s'adresse aux techniciens de maintenance de niveau 2. Document fictif rédigé pour le projet pédagogique SmartFactory Edge-AI.
+
+## Symptômes et seuils d'alerte
+La vibration est mesurée en vitesse efficace, en mm/s, sur le palier côté accouplement. Jusqu'à 2,8 mm/s, l'état est bon. De 2,8 à 4,5 mm/s, l'état est acceptable mais doit être suivi chaque semaine. De 4,5 à 7,1 mm/s, l'état est dégradé : une intervention doit être planifiée sous 48 heures. Au-delà de 7,1 mm/s, la pompe doit être arrêtée. Un bruit métallique, un claquement ou une température de palier supérieure à 70 °C confirment l'usure des roulements.
+
+## Causes probables
+Les causes principales sont l'usure normale des roulements, un défaut de graissage, un désalignement entre le moteur et la pompe, un balourd de la roue dû à des dépôts ou à de l'érosion, et un desserrage des fixations du socle. La cavitation produit aussi des vibrations à large bande accompagnées d'un bruit de gravier.
+
+## Procédure corrective immédiate
+Vérifier d'abord le serrage des boulons du socle et des brides. Contrôler le graissage : ajouter la quantité de graisse indiquée sur la plaque, sans excès, car un excès de graisse fait chauffer le roulement. Si la vibration reste supérieure à 4,5 mm/s, contrôler l'alignement de l'accouplement au comparateur ou au laser : l'écart doit rester inférieur à 0,05 mm. Si l'alignement est correct, planifier le remplacement des roulements.
+
+## Vérification et remise en service
+Après remplacement des roulements, faire tourner la pompe à vide pendant 15 minutes, puis en charge pendant 30 minutes. La vibration doit être inférieure à 2,8 mm/s et la température du palier inférieure à 60 °C. Enregistrer la nouvelle valeur de référence dans le journal pour les mesures suivantes.

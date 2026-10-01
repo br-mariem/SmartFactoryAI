@@ -1,0 +1,19 @@
+TITRE: SOP-001 - Procédure d'urgence : surchauffe pompe
+TYPE_EQUIPEMENT: POMPE
+NORME: ISO-14224
+VERSION: v2.1 - 2026
+
+## Domaine d'application
+Cette procédure s'applique aux pompes hydrauliques et aux pompes de refroidissement de l'atelier, repérées PUMP_A1 et PUMP_A2. Elle décrit la conduite à tenir lorsque la température du corps de pompe dépasse le seuil critique de 85 °C. Elle concerne les opérateurs de ligne et les techniciens de maintenance de niveau 1 et 2. Document fictif rédigé pour le projet pédagogique SmartFactory Edge-AI.
+
+## Symptômes et seuils d'alerte
+En dessous de 75 °C, le fonctionnement est normal. Entre 75 °C et 85 °C, la pompe passe en vigilance : l'opérateur surveille l'évolution toutes les minutes. Au-delà de 85 °C, l'alerte est critique. Une hausse de plus de 10 °C en moins de 30 secondes est anormale, même sous le seuil. D'autres signes accompagnent souvent la surchauffe : odeur d'huile chaude, sifflement, peinture qui noircit près du palier.
+
+## Causes probables
+La cause la plus fréquente est un débit de refroidissement insuffisant : filtre colmaté, vanne partiellement fermée ou pompe de circulation arrêtée. Viennent ensuite le fonctionnement vanne de refoulement fermée, qui fait tourner la pompe en recirculation, et les roulements dégradés, à confirmer si la vibration dépasse 4,5 mm/s. La cavitation, due à une pression d'aspiration trop basse, et une huile de lubrification dégradée sont aussi possibles.
+
+## Procédure corrective immédiate
+Premièrement, activer le circuit de refroidissement auxiliaire, pompe numéro 2, avec un débit de 80 %. Deuxièmement, réduire la puissance de la pompe en surchauffe à 60 % de sa consigne. Troisièmement, surveiller la température pendant 5 minutes : elle doit redescendre sous 80 °C. Si elle continue de monter ou dépasse 95 °C, arrêter la pompe, consigner l'équipement et appeler le technicien de niveau 2. Ne jamais ouvrir le carter tant que la température est supérieure à 50 °C.
+
+## Vérification et remise en service
+Après refroidissement, nettoyer ou remplacer le filtre du circuit, vérifier l'ouverture complète des vannes et contrôler le niveau et l'aspect de l'huile. Redémarrer à 50 % de la consigne pendant 10 minutes, puis revenir progressivement à 100 % si la température reste sous 75 °C et la vibration sous 4,5 mm/s. Noter l'intervention dans le journal de maintenance avec l'heure, les valeurs relevées et les actions réalisées.

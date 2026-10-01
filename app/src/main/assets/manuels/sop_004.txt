@@ -1,0 +1,19 @@
+TITRE: SOP-004 - Maintenance : température de refoulement compresseur
+TYPE_EQUIPEMENT: COMPRESSEUR
+NORME: ISO-1217
+VERSION: v2.2 - 2026
+
+## Domaine d'application
+Cette procédure concerne la température de refoulement des compresseurs à vis COMP_B1 et COMP_B2. Elle explique les seuils, les causes de surchauffe et l'entretien du circuit d'huile et de refroidissement. Elle s'adresse aux techniciens de maintenance de niveau 2. Document fictif rédigé pour le projet pédagogique SmartFactory Edge-AI.
+
+## Symptômes et seuils d'alerte
+La température de refoulement normale se situe entre 75 °C et 95 °C. Entre 95 °C et 105 °C, une alarme de vigilance s'affiche. Au-delà de 110 °C, le compresseur s'arrête automatiquement pour se protéger. Une température qui augmente lentement sur plusieurs jours signale en général un encrassement progressif du refroidisseur.
+
+## Causes probables
+Les causes les plus fréquentes sont un niveau d'huile trop bas, un refroidisseur huile-air encrassé par la poussière, un ventilateur de refroidissement en panne, une vanne thermostatique bloquée, une température ambiante supérieure à 40 °C dans le local, ou une huile usée qui a perdu ses propriétés.
+
+## Procédure corrective immédiate
+Vérifier le niveau d'huile à l'arrêt, sur le voyant : compléter avec l'huile préconisée si nécessaire. Nettoyer le refroidisseur à l'air comprimé, de l'intérieur vers l'extérieur. Vérifier le fonctionnement du ventilateur. Améliorer la ventilation du local si la température ambiante est trop élevée. Si l'huile a plus de 4000 heures de service, planifier la vidange et le remplacement du filtre à huile.
+
+## Vérification et remise en service
+Après intervention, faire fonctionner le compresseur en charge pendant 30 minutes. La température de refoulement doit se stabiliser sous 95 °C. Contrôler l'absence de fuite d'huile. Enregistrer la température stabilisée, le niveau d'huile et les pièces remplacées dans le journal de maintenance.
