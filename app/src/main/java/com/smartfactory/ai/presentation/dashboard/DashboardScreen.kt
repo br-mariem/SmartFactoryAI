@@ -64,14 +64,17 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(machines) { machine ->
-                MachineCard(machine = machine)
+                MachineCard(
+                    machine = machine,
+                    onInjectFailure = { machineId -> viewModel.injectFailure(machineId) }
+                )
             }
         }
     }
 }
 
 @Composable
-fun MachineCard(machine: MachineUiState) {
+fun MachineCard(machine: MachineUiState, onInjectFailure: (String) -> Unit) {
     // Card = une carte blanche avec une petite ombre
     Card(
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
@@ -113,6 +116,19 @@ fun MachineCard(machine: MachineUiState) {
                     .height(80.dp),
                 title = "Vibrations (mm/s)"
             )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Le bouton Rouge d'injection de panne
+            androidx.compose.material3.Button(
+                onClick = { onInjectFailure(machine.id) },
+                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.error
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("🔥 Injecter Panne")
+            }
         }
     }
 }

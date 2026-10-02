@@ -5,6 +5,10 @@
     <!-- Permission requise pour communiquer avec les capteurs industriels (MQTT) -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Permissions requises pour envoyer des Alertes Push et faire vibrer le téléphone -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <application
         android:name=".SmartFactoryApp"
         android:allowBackup="true"

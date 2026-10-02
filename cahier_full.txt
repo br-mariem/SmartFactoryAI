@@ -1,0 +1,1236 @@
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 1 / 30
+CAHIER DES CHARGES EXHAUSTIF & GUIDE PÉDAGOGIQUE DÉBUTANT
+Système de Supervision Industrielle
+SmartFactory Edge-AI & Agent RAG
+Conception complète, Architecture Clean Android, SQLite Haute Performance, Modèles
+Vectoriels Locaux et Inférence LLM On-Device.
+Programme d'apprentissage accéléré pour 2 développeurs débutants avec partage 50/50 des
+compétences.
+PUBLIC CIBLE
+Personne A & Personne
+B (Débutants)
+DURÉE RÉFÉRENTE
+2 Semaines (10 Jours /
+70 Heures)
+ENVIRONNEMENT
+Android Studio,
+Kotlin/Java, Room
+OBJECTIF MÉTIER
+Double Compétence
+Embarqué + GenAI
+1. PRÉSENTATION GÉNÉRALE DU PROJET
+1.1 Contexte Industriel 4.0
+Dans l'industrie manufacturière moderne (lignes d'assemblage, usines chimiques, usines automobiles), les
+arrêts non planifiés coûtent des millions d'euros par an. Les usines disposent de milliers de capteurs IoT qui
+mesurent des températures, vibrations, pressions et intensités électriques. Cependant, la plupart des systèmes
+de supervision actuels souffrent de trois limites majeures :
+1. Dépendance totale au Cloud : En cas de perte de connectivité Internet ou de défaillance réseau dans
+l'usine, les alertes s'arrêtent et les techniciens se retrouvent aveugles.
+2. Faible confidentialité des données : Les industriels refusent légitimement d'envoyer leurs télémétries et
+plans de machines vers des API Cloud publiques (comme OpenAI ou Google Cloud) pour des raisons de
+secret industriel.
+3. Temps de diagnostic lent : Lorsqu'un capteur dépasse un seuil critique, le technicien doit fouiller
+manuellement des classeurs de procédures de maintenance (SOP / normes ISO) de 500 pages pour
+trouver la cause racine et la démarche corrective.
+1.2 Objectif du Projet
+L'objectif de ce projet est de concevoir et développer une application Android sur tablette/smartphone industriel
+capable de fonctionner de manière 100% autonome et hors-ligne au cœur de l'usine. Elle combine :
+Un socle Embarqué & Temps Réel : Écoute des capteurs industriels via MQTT, stockage ultra-rapide
+dans une base de données SQLite locale optimisée, et affichage en temps réel avec des jauges réactives
+en Jetpack Compose.
+Un moteur de Recherche RAG Hybride On-Device : Indexation vectorielle des manuels de maintenance
+d'usine grâce à un modèle d'embeddings compact exécuté localement (ONNX Runtime) combiné à un
+moteur de recherche plein texte (SQLite FTS5).
+Un Modèle de Langage Local (Small Language Model - SLM) : Exécution d'un LLM quantifié 4-bit
+directement sur le processeur mobile (via llama.cpp en C++ natif) pour analyser les pannes sans aucun
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 2 / 30
+serveur externe.
+Un Agent Décisionnel Autonome avec Sécurité : L'IA est capable d'analyser l'incident, de consulter la
+documentation, d'élaborer une solution et de déclencher des outils d'intervention (ex: ajuster le débit de
+refroidissement, réarmer un disjoncteur), tout en intégrant une validation obligatoire par l'opérateur
+humain (Human-in-the-Loop).
+1.3 Résultat Final Attendu (Livrable Global)
+À la fin du projet, l'application fonctionnera sur un smartphone ou un émulateur Android Studio :
+Un flux MQTT ou un simulateur enverra des mesures de 10 machines (Température, Pression, Vibration,
+Vitesse).
+Lorsqu'une machine surchauffe (> 85°C), une alerte visuelle et sonore se déclenche immédiatement sur
+l'écran.
+L'opérateur clique sur "Diagnostiquer avec l'IA". Le système extrait instantanément la télémétrie des 5
+dernières minutes, interroge la documentation technique locale via la recherche hybride RAG, et le LLM
+génère en direct l'explication de la panne et la recommandation d'action.
+L'Agent propose : "Activer le circuit de refroidissement auxiliaire pompe #2". L'opérateur glisse un bouton
+"Confirmer l'action", et l'ordre est immédiatement exécuté et tracé dans un journal d'audit SQLite
+infalsifiable.
+1.4 Contraintes Techniques Strictes
+Zéro dépendance Cloud obligatoire : Tout doit pouvoir fonctionner en Mode Avion (100% On-Device).
+Budget Mémoire RAM : L'ensemble de l'application (UI + SQLite + Embeddings + LLM) ne doit pas
+dépasser 1.8 Go de RAM afin de tourner sur des terminaux Android standards.
+Latence d'insertion : SQLite doit être capable d'avaler 50 mesures par seconde sans aucun freeze ou
+ralentissement sur l'interface graphique (Thread UI à 60 FPS constants).
+Architecture Modulaire : Respect strict des principes de la Clean Architecture (séparation nette entre la
+couche Données, Domaine, UI et Moteur IA).
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 3 / 30
+2. SPÉCIFICATIONS FONCTIONNELLES DÉTAILLÉES
+RÉF.
+MODULE
+COMPORTEMENT ATTENDU
+CRITÈRE D'ACCEPTATION
+SF-01
+Ingestion Capteurs Temps
+Réel
+L'application se connecte au broker
+MQTT d'usine (topic
+factory/sensors/# ) ou lit un flux
+de simulation. Chaque trame JSON
+reçue contient les valeurs des
+capteurs. Les données sont validées
+puis insérées en base de données.
+Fréquence jusqu'à 50
+msgs/sec sans perte.
+Notification immédiate aux
+observateurs UI via Kotlin
+Flow.
+SF-02
+Dashboard & Visualisation
+UI
+Écran principal affichant la liste des
+machines avec indicateurs colorés
+(Vert = Normal, Jaune = Vigilance,
+Rouge = Alerte). Affichage détaillé
+avec jauge circulaire animée et courbe
+sparkline des 60 dernières secondes.
+Temps de
+rafraîchissement < 16ms
+(60 images par seconde).
+Pas de blocage lors du
+défilement.
+SF-03
+Détection Prédictive
+d'Anomalies
+Module de calcul temps réel
+comparant les valeurs entrantes aux
+seuils critiques (seuil absolu +
+détection statistique d'augmentation
+rapide de température en moins de 30
+secondes).
+Détection en < 100ms
+avec insertion immédiate
+d'un enregistrement dans
+la table incidents .
+SF-04
+Gestion & Parsing de la
+Documentation
+Lecture et découpage automatique des
+guides de maintenance industrielle
+(fichiers texte/PDF ISO-14224) en
+morceaux (chunks) cohérents de 300
+mots avec chevauchement de 50
+mots.
+Découpage propre
+respectant les
+paragraphes techniques
+et indexation complète en
+base locale.
+SF-05
+Moteur RAG Hybride
+(Vectoriel + FTS5)
+Recherche documentaire combinant
+deux moteurs : la recherche par mots-
+clés exacts (SQLite FTS5 avec BM25)
+et la recherche sémantique par
+similarité cosinus sur vecteurs
+d'embeddings (ONNX).
+Extraction des 3 passages
+documentaires les plus
+pertinents en moins de
+250ms sur le téléphone.
+SF-06
+Assistant Copilot LLM On-
+Device
+Génération de texte assistée par IA
+locale (modèle Phi-3 ou Qwen
+quantifié 4-bit). Le modèle reçoit la
+question de l'opérateur, l'état
+instantané des capteurs et les extraits
+des manuels RAG.
+Streaming mot par mot
+des réponses sur l'écran à
+une vitesse ≥ 12
+tokens/seconde sur
+processeur mobile.
+SF-07
+Agent Autonome & Tool
+Calling
+L'Agent IA peut décider de déclencher
+des actions logiques prédéfinies :
+reinitialiser_capteur(id) ,
+reguler_puissance(machine_id,
+pourcentage) ,
+creer_bon_intervention(niveau) .
+L'Agent génère un format
+d'action clair (JSON ou
+ReAct) parsé
+rigoureusement sans
+hallucination.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 4 / 30
+RÉF.
+MODULE
+COMPORTEMENT ATTENDU
+CRITÈRE D'ACCEPTATION
+SF-08
+Garde-fou Sécurité
+(Human-in-the-Loop)
+Toute action ayant un impact physique
+sur la machine (arrêt, modification de
+consigne) nécessite une confirmation
+visuelle explicite (bouton de
+déverrouillage glissant) par l'opérateur
+humain.
+Aucun ordre critique n'est
+envoyé sans token de
+confirmation manuelle
+validé en UI.
+SF-09
+Journal d'Audit &
+Traçabilité
+Chaque recommandation du LLM,
+chaque action de l'Agent et chaque
+validation de l'opérateur est consignée
+avec horodatage dans la table d'audit
+SQLite.
+Exportation possible du
+rapport de maintenance
+au format texte/JSON
+pour transmission au chef
+d'atelier.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 5 / 30
+3. CONCEPTION APPROFONDIE DE LA BASE DE DONNÉES SQLITE
+3.1 Justification Technique du Choix SQLite + Room ORM
+Dans un environnement mobile industriel embarqué, le choix du système de gestion de base de données est
+crucial :
+SQLite natif C : Présent dans le noyau de chaque système Android, SQLite garantit une empreinte
+mémoire quasi-nulle, une conformité ACID complète (Atomicité, Cohérence, Isolation, Durabilité) et
+aucune dépendance à un processus serveur externe.
+Google Room ORM : Fournit une couche d'abstraction typée au-dessus de SQLite. Room vérifie la validité
+des requêtes SQL à la compilation (évitant les erreurs de syntaxe à l'exécution) et expose nativement des
+flux réactifs Flow<List<T>>  pour mettre à jour l'interface automatiquement dès qu'une donnée change.
+Module SQLite FTS5 (Full-Text Search) : Permet d'indexer en quelques millisecondes le texte intégral
+des manuels techniques avec calcul de score BM25 natif, sans avoir besoin d'installer Elasticsearch ou
+Lucene.
+Stockage des Embeddings sous forme de BLOB : Les vecteurs mathématiques (tableaux de 384
+nombres décimaux) générés par le modèle d'IA sont stockés directement sous forme de tableau binaire
+byte[]  (BLOB), ce qui permet des lectures ultra-rapides en mémoire vive.
+3.2 Schéma Entité-Association (Diagramme Conceptuel)
++------------------------+ 1:N +-----------------------------+ | machines |-----------------------|
+sensor_telemetry | +------------------------+ +-----------------------------+ | PK machine_id (TEXT)
+| | PK id (INTEGER AUTOINCREMENT)| | nom (TEXT) | | FK machine_id (TEXT) | | zone_usine (TEXT) | |
+timestamp (INTEGER) | | type (TEXT) | | temperature (REAL) | | seuil_temp_max(REAL)| | vibration
+(REAL) | | statut (TEXT) | | pression (REAL) | +------------------------+ | is_anomalie (INTEGER) | |
++-----------------------------+ | 1:N | v v Déclenche +------------------------+ +-------------------
+----------+ | maintenance_docs | | incidents | +------------------------+ +--------------------------
+---+ | PK doc_id (INTEGER) | | PK incident_id (INTEGER) | | FK machine_type (TEXT) | | FK machine_id
+(TEXT) | | titre (TEXT) | | date_debut (INTEGER) | | norme_iso (TEXT) | | type_anomalie (TEXT) | +---
+---------------------+ | niveau_gravite (TEXT) | | | resolu (INTEGER) | | 1:N +----------------------
+-------+ v | +------------------------+ | 1:N | doc_chunks | v +------------------------+ +----------
+-------------------+ | PK chunk_id (INTEGER) | | agent_audit_trail | | FK doc_id (INTEGER) | +-------
+----------------------+ | chunk_index(INTEGER)| | PK audit_id (INTEGER) | | contenu (TEXT) | | FK
+incident_id (INTEGER) | +------------------------+ | prompt_envoye (TEXT) | | 1:1 | 1:1 |
+pensee_react (TEXT) | v v | outil_choisi (TEXT) | +-------------+ +-------------------+ |
+parametres_json (TEXT) | | fts_chunks | | chunk_embeddings | | statut_humain (TEXT) | | (Virtuelle) |
+| PK chunk_id (INT) | | execute_a (INTEGER) | +-------------+ | vecteur (BLOB) | +-------------------
+----------+ | dimension (INT)| +-------------------+
+3.3 Spécification Détaillée des Tables et Contraintes
+Table 1 : machines  (Catalogue des équipements de l'usine)
+Stocke la liste des machines surveillées et leurs seuils de tolérance opérationnels.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 6 / 30
+COLONNE
+TYPE
+SQLITE
+TYPE
+KOTLIN
+CONTRAINTES
+RÔLE / DESCRIPTION
+machine_id
+TEXT
+String
+PRIMARY KEY,
+NOT NULL
+Identifiant unique de la machine (ex:
+"PUMP_ZONE_A1").
+nom
+TEXT
+String
+NOT NULL
+Nom compréhensible (ex: "Pompe
+Hydraulique Principale").
+zone_usine
+TEXT
+String
+NOT NULL
+Localisation géographique dans l'usine
+(ex: "Bâtiment B - Secteur 3").
+type_equipement
+TEXT
+String
+NOT NULL
+Catégorie (ex:
+"MOTEUR_ASYNCHRONE",
+"COMPRESSEUR").
+seuil_temp_critique
+REAL
+Double
+NOT NULL,
+CHECK > 0
+Température en °C déclenchant l'alerte
+rouge (ex: 85.0).
+seuil_vibration_max
+REAL
+Double
+NOT NULL,
+CHECK > 0
+Vibration max tolérée en mm/s (ex:
+4.5).
+statut_courant
+TEXT
+String
+DEFAULT 'OK'
+État courant : 'OK', 'WARNING',
+'CRITICAL', 'MAINTENANCE'.
+Table 2 : sensor_telemetry  (Historique des mesures capteurs)
+Reçoit le flux continu de données télémétriques. Indexée sur le timestamp pour des graphiques rapides.
+COLONNE
+TYPE
+SQLITE
+TYPE
+KOTLIN
+CONTRAINTES
+RÔLE / DESCRIPTION
+id
+INTEGER
+Long
+PRIMARY KEY
+AUTOINCREMENT
+Identifiant séquentiel de la
+mesure.
+machine_id
+TEXT
+String
+FOREIGN KEY →
+machines(machine_id) ON
+DELETE CASCADE
+Référence vers la machine
+mesurée.
+timestamp
+INTEGER
+Long
+NOT NULL, INDEXÉ
+Horodatage en millisecondes
+(Unix epoch).
+temperature
+REAL
+Double
+NOT NULL
+Mesure de température en
+degrés Celsius.
+vibration
+REAL
+Double
+NOT NULL
+Mesure de vibration mécanique
+en mm/s.
+pression
+REAL
+Double
+NOT NULL
+Pression
+hydraulique/pneumatique en
+Bars.
+vitesse_rotation
+REAL
+Double
+NOT NULL
+Vitesse de rotation en tours par
+minute (RPM).
+is_anomalie
+INTEGER
+Boolean
+DEFAULT 0 (0 ou 1)
+1 si cette mesure dépasse un
+des seuils critiques, sinon 0.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 7 / 30
+💡 INDEX INDISPENSABLE SUR LA TABLE TÉLÉMÉTRIE
+Pour que l'affichage des graphiques 60 secondes reste instantané malgré des millions de lignes, nous créons
+un index composé :
+CREATE INDEX idx_telemetry_machine_time ON sensor_telemetry(machine_id, timestamp DESC);
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 8 / 30
+Table 3 : maintenance_docs  (Manuels techniques d'usine)
+COLONNE
+TYPE
+SQLITE
+CONTRAINTES
+DESCRIPTION
+doc_id
+INTEGER
+PRIMARY KEY
+AUTOINCREMENT
+Identifiant du manuel technique.
+type_equipement
+TEXT
+NOT NULL
+Associe le manuel à une catégorie de machine.
+titre
+TEXT
+NOT NULL
+Titre officiel (ex: "SOP-042: Procédure
+d'urgence Surchauffe Pompe").
+norme_iso
+TEXT
+DEFAULT 'ISO-14224'
+Norme de maintenance industrielle de
+référence.
+version
+TEXT
+NOT NULL
+Version du document (ex: "v2.1 - 2026").
+Table 4 : doc_chunks  (Segments de texte découpés pour le RAG)
+Découpage des documents en blocs analysables par les modèles d'IA.
+COLONNE
+TYPE
+SQLITE
+CONTRAINTES
+DESCRIPTION
+chunk_id
+INTEGER
+PRIMARY KEY AUTOINCREMENT
+Identifiant unique du morceau
+de texte.
+doc_id
+INTEGER
+FOREIGN KEY → maintenance_docs(doc_id)
+ON DELETE CASCADE
+Lien vers le document parent.
+chunk_index
+INTEGER
+NOT NULL
+Numéro d'ordre dans le
+document (0, 1, 2...).
+chapitre
+TEXT
+NOT NULL
+Nom de la section (ex:
+"Diagnostic des roulements").
+contenu_texte
+TEXT
+NOT NULL
+Paragraphe technique (~200 à
+300 mots).
+Table Virtuelle 5 : fts_doc_chunks  (Recherche Mots-Clés FTS5)
+Créée avec le module natif SQLite FTS5 pour une recherche textuelle ultra-rapide avec tolérance aux fautes :
+CREATE VIRTUAL TABLE fts_doc_chunks USING fts5(
+    chunk_id UNINDEXED,
+    chapitre,
+    contenu_texte,
+    tokenize='unicode61 remove_diacritics 2'
+);
+Table 6 : chunk_embeddings  (Vector Store Local)
+Stocke la représentation sémantique (vecteur) de chaque chunk pour le RAG sémantique.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 9 / 30
+COLONNE
+TYPE
+SQLITE
+CONTRAINTES
+DESCRIPTION
+chunk_id
+INTEGER
+PRIMARY KEY, FOREIGN KEY →
+doc_chunks(chunk_id) ON DELETE
+CASCADE
+Identifiant du chunk correspondant
+(relation 1:1).
+vecteur_blob
+BLOB
+NOT NULL
+Tableau binaire des 384 nombres
+flottants (384 * 4 octets = 1536
+octets).
+dimension
+INTEGER
+DEFAULT 384
+Taille du vecteur (384 pour le
+modèle all-MiniLM-L6-v2).
+norme_l2
+REAL
+NOT NULL
+Norme euclidienne précalculée pour
+accélérer le calcul de similarité
+cosinus.
+Table 7 : incidents  (Journal des pannes détectées)
+COLONNE
+TYPE
+SQLITE
+CONTRAINTES
+DESCRIPTION
+incident_id
+INTEGER
+PRIMARY KEY
+AUTOINCREMENT
+Identifiant unique de l'incident.
+machine_id
+TEXT
+FOREIGN KEY →
+machines(machine_id)
+Machine affectée.
+date_detection
+INTEGER
+NOT NULL
+Timestamp de détection de l'anomalie.
+type_anomalie
+TEXT
+NOT NULL
+Ex: "SURCHAUFFE_CRITIQUE",
+"VIBRATION_ANORMALE".
+valeur_relevee
+REAL
+NOT NULL
+Valeur qui a fait disjoncter la règle (ex: 92.4
+°C).
+statut
+TEXT
+DEFAULT 'EN_COURS'
+'EN_COURS', 'DIAGNOSTIQUE', 'RESOLU',
+'IGNORE'.
+Table 8 : agent_audit_trail  (Traçabilité des décisions de l'Agent IA)
+Cette table garantit une transparence totale sur les décisions prises par l'intelligence artificielle.
+COLONNE
+TYPE
+SQLITE
+CONTRAINTES
+DESCRIPTION
+audit_id
+INTEGER
+PRIMARY KEY
+AUTOINCREMENT
+Identifiant unique de l'entrée d'audit.
+incident_id
+INTEGER
+FOREIGN KEY →
+incidents(incident_id)
+Incident auquel se rattache cette décision.
+timestamp
+INTEGER
+NOT NULL
+Horodatage exact de l'action de l'agent.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 10 / 30
+COLONNE
+TYPE
+SQLITE
+CONTRAINTES
+DESCRIPTION
+contexte_rag_utilise
+TEXT
+NOT NULL
+Identifiants des chunks documentaires
+injectés dans le prompt.
+pensee_agent
+TEXT
+NOT NULL
+Raisonnement explicité de l'Agent (Thinking
+step).
+outil_demande
+TEXT
+NOT NULL
+Nom de la fonction invoquée (ex:
+"activer_refroidissement").
+arguments_json
+TEXT
+NOT NULL
+Paramètres de la fonction (ex:
+{"machine_id": "PUMP_01", "debit":
+80} ).
+decision_humaine
+TEXT
+NOT NULL
+'VALIDÉ_PAR_OPERATEUR',
+'REFUSÉ_PAR_OPERATEUR',
+'AUTOMATIQUE'.
+resultat_execution
+TEXT
+NOT NULL
+Code de retour ou message d'erreur de la
+commande industrielle.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 11 / 30
+4. ARCHITECTURE TECHNIQUE & ORGANISATION DU PROJET
+4.1 Patron d'Architecture : Clean Architecture & MVVM
+Pour garantir que deux débutants puissent collaborer sur le même dépôt Git sans provoquer de conflits
+permanents, le code respecte rigoureusement la Clean Architecture recommandée par Google pour Android :
++-----------------------------------------------------------------------------------+ | 1. COUCHE
+PRÉSENTATION (UI) | | - Écrans Jetpack Compose (DashboardScreen, DiagnosticScreen, AuditScreen) | | -
+ViewModels (DashboardViewModel, AssistantViewModel) | | - UI State (Data Classes immuables
+représentant l'état de l'écran) | +------------------------------------------------------------------
+-----------------+ | Dépend de v +-------------------------------------------------------------------
+----------------+ | 2. COUCHE DOMAINE (DOMAIN) | | - Cas d'Utilisation (Use Cases) :
+ListenSensorsUseCase, RunRAGDiagnosisUseCase | | - Modèles Métier purs (indépendants de la base de
+données et d'Android) | | - Interfaces des Repositories (Contrats) | +-------------------------------
+----------------------------------------------------+ | Dépend de v +--------------------------------
+---------------------------------------------------+ | 3. COUCHE DONNÉES (DATA) | | - Implémentations
+des Repositories (TelemetryRepositoryImpl, DocsRepositoryImpl) | | - Base de Données Room
+(AppDatabase, DAOs, Entities) | | - Client Réseau / MQTT (MqttClientService, CsvDataParser) | +------
+-----------------------------------------------------------------------------+ | Dépend de v +-------
+----------------------------------------------------------------------------+ | 4. COUCHE MOTEUR IA
+(AI-ENGINE) | | - EmbeddingEngine (ONNX Runtime, modèle all-MiniLM-L6-v2) | | - VectorSearchEngine
+(Cosine Similarity en mémoire & BLOB SQLite) | | - LlmInferenceEngine (Liaison native JNI avec
+llama.cpp, modèle GGUF quantifié) | | - AgentDecisionEngine (Boucle de raisonnement ReAct & Tool
+Registry) | +-----------------------------------------------------------------------------------+
+4.2 Arborescence Complète des Packages Android
+com.smartfactory.ai/
+├── di/                                    // Injection de Dépendances (Hilt)
+│   ├── DatabaseModule.kt                  // Fournit Room Database et DAOs
+│   ├── AiModule.kt                        // Fournit ONNX Engine et LLM Runner
+│   └── NetworkModule.kt                   // Fournit le client MQTT
+├── data/                                  // Couche Données
+│   ├── local/
+│   │   ├── database/
+│   │   │   ├── AppDatabase.kt             // Déclaration RoomDatabase
+│   │   │   ├── dao/
+│   │   │   │   ├── MachineDao.kt
+│   │   │   │   ├── TelemetryDao.kt
+│   │   │   │   ├── MaintenanceDocDao.kt
+│   │   │   │   ├── VectorDao.kt
+│   │   │   │   └── AuditDao.kt
+│   │   │   └── entity/                    // Entités SQLite Room
+│   │   └── parser/
+│   │       └── CsvSensorParser.kt         // Parser CSV haute performance
+│   ├── network/
+│   │   └── MqttService.kt                 // Écoute des trames MQTT d'usine
+│   └── repository/
+│       ├── TelemetryRepositoryImpl.kt
+│       └── MaintenanceRepositoryImpl.kt
+├── domain/                                // Couche Logique Métier
+│   ├── model/                             // Objets Métier purs
+│   │   ├── Machine.kt
+│   │   ├── TelemetryPoint.kt
+│   │   ├── DiagnosticResult.kt
+│   │   └── AgentAction.kt
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 12 / 30
+│   └── usecase/                           // Cas d'usage métier unitaires
+│       ├── IngestTelemetryUseCase.kt
+│       ├── DetectAnomalyUseCase.kt
+│       ├── SearchHybridDocumentationUseCase.kt
+│       └── ExecuteAgentDecisionUseCase.kt
+├── ai/                                    // Couche Intelligence Artificielle Locale
+│   ├── embedding/
+│   │   └── OnnxEmbeddingModel.kt          // Inférence ONNX all-MiniLM
+│   ├── vector/
+│   │   └── VectorMath.kt                  // Calculs Cosine Similarity
+│   ├── llm/
+│   │   ├── LlamaCppBridge.kt              // Interface JNI Native C++
+│   │   └── PromptFormatter.kt             // Construction des prompts ChatML
+│   └── agent/
+│       ├── AgentLoop.kt                   // Boucle ReAct Thought-Action
+│       └── ToolRegistry.kt                // Fonctions autorisées pour l'Agent
+└── presentation/                          // Couche Interface Graphique
+    ├── dashboard/                         // Écran 1 : Supervision Temps Réel
+    │   ├── DashboardScreen.kt
+    │   ├── DashboardViewModel.kt
+    │   └── components/ (GaugeView.kt, SparklineChart.kt)
+    ├── assistant/                         // Écran 2 : Diagnostic RAG & Chat IA
+    │   ├── AssistantScreen.kt
+    │   ├── AssistantViewModel.kt
+    │   └── components/ (ChatMessageBubble.kt, CitationCard.kt)
+    └── audit/                             // Écran 3 : Journal de Sécurité
+        ├── AuditLogScreen.kt
+        └── AuditViewModel.kt
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 13 / 30
+5. DÉCOUPAGE DU PROJET EN MODULES & DÉPENDANCES
+Pour garantir une progression sans blocage, le projet est découpé en 5 grandes étapes chronologiques.
+Chaque étape produit un résultat testable et vérifiable avant de passer à la suivante :
+ÉTAPE
+NOM DE L'ÉTAPE
+DÉPENDANCES
+REQUISES
+LIVRABLE CONCRET VALIDÉ
+Étape
+1
+Socle Projet &
+Modélisation SQLite
+Android Studio
+configuré
+L'application démarre, Room compile sans erreur, les
+tables sont créées sur le smartphone.
+Étape
+2
+Ingestion Capteurs &
+Vector Store Local
+Étape 1 validée
+10 000 mesures de capteurs sont insérées en SQLite.
+Le modèle ONNX génère un vecteur BLOB testé avec
+succès.
+Étape
+3
+Dashboard UI & RAG
+Hybride Documentaire
+Étape 2 validée
+L'écran affiche les jauges capteurs animées en temps
+réel. La recherche hybride (FTS5 + Vecteurs) trouve le
+bon manuel en 200ms.
+Étape
+4
+Moteur LLM On-Device
+& Copilot Chat
+Étape 3 validée
+Le modèle Phi-3 tourne en local sur le téléphone.
+L'opérateur pose une question sur une panne et obtient
+une réponse streamée.
+Étape
+5
+Agent Décisionnel &
+Garde-fou de Sécurité
+Étape 4 validée
+L'Agent déclenche des outils techniques après
+validation manuelle par l'opérateur. La table d'audit
+enregistre l'opération.
+6. RÉPARTITION ÉQUILIBRÉE DU TRAVAIL (50% / 50%)
+🤝 PRINCIPE FONDAMENTAL DE PARTAGE DES RÔLES
+Aucune personne n'est confinée dans un seul domaine !
+• Personne A code 50% de la base de données, 50% de l'interface graphique Jetpack Compose, et 50% des
+modules d'Intelligence Artificielle (Embeddings ONNX + LLM Native C++).
+• Personne B code 50% de la base de données, 50% de l'interface graphique Jetpack Compose, et 50% des
+modules d'Intelligence Artificielle (Vector Search mathématique + Agent ReAct & Tool Calling).
+Chaque membre acquiert ainsi une maîtrise complète et indiscutable de tout le système pour ses futurs
+entretiens de recrutement.
+DOMAINE
+TECHNIQUE
+CE QUE RÉALISE PERSONNE A
+CE QUE RÉALISE PERSONNE B
+Base de
+Données &
+Data
+Schéma Room, Entités machines  et
+sensor_telemetry , Parser CSV haute
+performance, Requêtes batch.
+Schéma Room, Entités maintenance_docs ,
+doc_chunks , agent_audit_trail , Table
+virtuelle SQLite FTS5.
+Interface
+Graphique (UI)
+Écran de Diagnostic Assistant (Bulles de chat,
+citations de manuels, streaming des tokens
+avec StateFlow).
+Écran Principal Dashboard (Jauges circulaires
+animées, courbes Sparklines temps réel, alertes
+rouges clignotantes).
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 14 / 30
+DOMAINE
+TECHNIQUE
+CE QUE RÉALISE PERSONNE A
+CE QUE RÉALISE PERSONNE B
+IA Générative
+& RAG
+Intégration d'ONNX Runtime, chargement du
+modèle d'embeddings all-MiniLM , binaire
+C++ llama.cpp  via JNI.
+Calcul de Cosine Similarity vectoriel en
+Java/Kotlin, algorithme de fusion RRF (FTS5 +
+Vecteurs), Registre d'outils Agent.
+Sécurité &
+Embarqué
+Formatage dynamique des Prompts système
+avec données de télémétrie injectées, gestion
+de la mémoire RAM du LLM.
+Client d'écoute réseau MQTT en tâche de fond
+(Service), dialogue de confirmation de sécurité
+Human-in-the-Loop (Swipe).
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 15 / 30
+7. FICHES DE TÂCHES DÉTAILLÉES PAS À PAS (GUIDE
+PÉDAGOGIQUE)
+Tâche 01 : Initialisation du Projet Android & Setup de
+l'Architecture
+ASSIGNÉ À : PERSONNE A
+TEMPS ESTIMÉ : 3H30
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Gradle & Kotlin DSL : Gradle est l'outil qui télécharge les bibliothèques et compile votre application. Le fichier
+build.gradle.kts  contient la liste de vos dépendances.
+Injection de Dépendances (Hilt) : Hilt est un outil créé par Google qui s'occupe de créer et fournir
+automatiquement les instances de vos classes (comme la base de données) là où vous en avez besoin, sans
+faire de new Database()  partout.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Ouvrir Android Studio, cliquer sur New Project → Empty Activity (Compose).
+2. Nommer le projet SmartFactoryAI , choisir le langage Kotlin et le SDK Minimum API 26 (Android 8.0).
+3. Dans le fichier build.gradle.kts (Module: app) , ajouter les dépendances pour Room, Hilt, Coroutines et
+Jetpack Compose.
+4. Créer l'arborescence des dossiers (packages) : di , data , domain , presentation , ai .
+5. Annoter la classe Application principale avec @HiltAndroidApp .
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+Erreur de synchronisation Gradle : Vérifier que les versions des plugins Hilt et Kotlin dans
+build.gradle.kts (Project)  sont strictement identiques.
+Oubli dans le Manifest : Ne pas oublier de déclarer votre classe Application dans le fichier
+AndroidManifest.xml  avec l'attribut android:name=".SmartFactoryApp" .
+✅ RÉSULTAT CONCRET ATTENDU :
+L'application compile sans aucune erreur (build vert) et se lance sur l'émulateur avec un écran affichant
+"SmartFactory Initialisé".
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 16 / 30
+Tâche 02 : Intégration du SDK ONNX Runtime & Préparation du
+Réseau MQTT
+ASSIGNÉ À : PERSONNE B
+TEMPS ESTIMÉ : 3H30
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+ONNX (Open Neural Network Exchange) : Format standard universel permettant d'exécuter un modèle d'IA
+entraîné avec PyTorch directement sur Android de façon ultra-rapide en C++.
+Protocole MQTT : Protocole de communication très léger utilisé dans toutes les usines du monde. Il fonctionne
+avec un système de "Publish/Subscribe" (on s'abonne à un sujet comme factory/pump1/temperature  et on
+reçoit les messages en continu).
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Ajouter la dépendance ONNX Runtime Android dans build.gradle.kts  :
+implementation("com.microsoft.onnxruntime:onnxruntime-android:1.17.0") .
+2. Ajouter la bibliothèque de communication MQTT (Eclipse Paho Android Client ou HiveMQ Client).
+3. Télécharger le fichier pré-entraîné du modèle d'embeddings all-MiniLM-L6-v2.onnx  (~80 Mo) et le placer
+dans le dossier app/src/main/assets/models/ .
+4. Écrire une classe de test unitaire OnnxSmokeTest.kt  qui charge le fichier du modèle depuis les assets et
+vérifie que le moteur ONNX s'initialise sans crasher.
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+Asset introuvable : Le dossier assets  doit être situé exactement au même niveau que le dossier java
+ou kotlin  dans src/main/ .
+Permissions réseau : Ne pas oublier d'ajouter la permission Internet dans AndroidManifest.xml  :
+<uses-permission android:name="android.permission.INTERNET" /> .
+✅ RÉSULTAT CONCRET ATTENDU :
+Le test unitaire s'exécute avec succès : le runtime ONNX charge le modèle en mémoire RAM mobile sans
+exception.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 17 / 30
+Tâche 03 : Modélisation Room des Tables Télémétrie &
+Machines + Parser CSV
+ASSIGNÉ À : PERSONNE A
+TEMPS ESTIMÉ : 4H00
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Room Entities & DAOs : Une entité Room ( @Entity ) est une classe Kotlin qui correspond à une table SQLite. Un
+DAO (Data Access Object) est une interface contenant les requêtes SQL ( @Insert , @Query ).
+Batch Transaction : Au lieu d'insérer 10 000 lignes une par une (ce qui prendrait 30 secondes), on regroupe
+toutes les insertions dans une seule transaction SQLite (ce qui prend moins de 0.5 seconde).
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Créer les entités Kotlin MachineEntity.kt  et SensorTelemetryEntity.kt  en respectant scrupuleusement
+les champs décrits dans la Section 3 du cahier des charges.
+2. Créer l'interface TelemetryDao.kt  avec les méthodes : insertBatch(list) ,
+getLatest60Seconds(machineId)  et getAnomalies() .
+3. Télécharger le jeu de données Kaggle "Predictive Maintenance" (fichier ai4i2020.csv ).
+4. Écrire la classe CsvSensorParser.kt  utilisant un BufferedReader  pour lire le CSV ligne par ligne et
+convertir chaque ligne en objet SensorTelemetryEntity .
+5. Créer un test d'insertion mesurant le temps : insérer 10 000 mesures et vérifier que le temps total est
+inférieur à 1 seconde.
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+Bloquer le Thread UI : Ne jamais appeler une opération de base de données sur le thread principal
+d'Android. Toujours utiliser withContext(Dispatchers.IO)  avec les coroutines Kotlin !
+✅ RÉSULTAT CONCRET ATTENDU :
+La base de données contient 10 000 mesures de télémétrie exploitables, et une requête de récupération des 60
+dernières secondes s'exécute en moins de 5 millisecondes.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 18 / 30
+Tâche 04 : Modélisation des Tables RAG, Table Virtuelle FTS5
+& Vector Store
+ASSIGNÉ À : PERSONNE B
+TEMPS ESTIMÉ : 4H00
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Full-Text Search (FTS5) : Moteur de recherche interne de SQLite qui découpe les phrases en mots et crée un
+index inversé, permettant de retrouver n'importe quel mot dans 10 000 pages en 2 millisecondes.
+Vecteurs d'Embeddings & BLOB : L'IA transforme chaque paragraphe de texte en une série de 384 chiffres.
+Pour les stocker rapidement dans SQLite sans alourdir la mémoire, on convertit ce tableau de Float  en tableau
+d'octets binaire ( ByteArray  ou BLOB ).
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Créer les entités Room MaintenanceDocEntity.kt , DocChunkEntity.kt  et ChunkEmbeddingEntity.kt .
+2. Créer l'entité FTS5 annotée avec @Fts4  ou @Fts5  dans Room : FtsDocChunkEntity.kt .
+3. Créer le DAO MaintenanceDocDao.kt  avec les requêtes de recherche FTS5 :
+@Query("SELECT * FROM fts_doc_chunks WHERE fts_doc_chunks MATCH :query") .
+4. Écrire une classe utilitaire de conversion VectorConverter.kt  pour transformer un FloatArray  en
+ByteArray  (ByteBuffer) et inversement.
+5. Créer la table d'audit AgentAuditEntity.kt  et son DAO associé pour tracer les futures actions de l'agent.
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+Endianness des Octets : Dans ByteBuffer , toujours spécifier l'ordre des octets :
+buffer.order(ByteOrder.LITTLE_ENDIAN)  pour être certain que la conversion float → byte reste
+identique sur toutes les architectures de processeur.
+✅ RÉSULTAT CONCRET ATTENDU :
+Les tables de documentation et de vecteurs sont créées dans SQLite. Une recherche par mot-clé sur la table
+FTS renvoie instantanément les chunks associés.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 19 / 30
+Tâche 05 : [ROTATION] Moteur d'Embeddings On-Device
+& Indexation des Manuels
+ASSIGNÉ À : PERSONNE A (PASSE SUR L'IA !)
+TEMPS ESTIMÉ : 4H30
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Tokenization : Avant qu'un modèle d'IA ne puisse comprendre du texte, les mots doivent être découpés en
+sous-mots appelés "Tokens" (représentés par des nombres entiers).
+Chunking Stratégique : On ne peut pas vectoriser un manuel complet de 50 pages d'un coup. On le découpe en
+petits morceaux de 250 mots, avec 50 mots qui se répètent entre chaque morceau (overlap) pour ne pas couper
+une phrase importante au milieu.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Créer la classe OnnxEmbeddingEngine.kt  qui encapsule l'exécution du modèle all-MiniLM-L6-v2 .
+2. Implémenter le tokeniseur simplifié (WordPiece tokenizer) ou intégrer le tokenizer ONNX standard pour
+transformer les chaînes de caractères en tenseur d'entrée input_ids .
+3. Créer un jeu de test de 10 fiches techniques réelles d'usines (SOP pompes, compresseurs, moteurs).
+4. Écrire la fonction de découpage chunkText(text, chunkSize=250, overlap=50) .
+5. Pour chaque chunk, exécuter l'inférence ONNX pour obtenir le vecteur de dimension 384, puis le
+sauvegarder dans la table chunk_embeddings  via Room.
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+Fuite mémoire Tenseurs ONNX : Les tenseurs ONNX sont gérés en mémoire C++. Toujours appeler
+tensor.close()  ou utiliser le bloc Kotlin use { }  pour libérer la RAM immédiatement après chaque
+inférence !
+✅ RÉSULTAT CONCRET ATTENDU :
+Les 10 fiches techniques sont entièrement découpées et indexées en base de données avec leurs 384 valeurs
+flottantes associées.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 20 / 30
+Tâche 06 : [ROTATION] Dashboard Jetpack Compose
+& Visualisation Temps Réel
+ASSIGNÉ À : PERSONNE B (PASSE SUR L'ANDROID UI
+!)
+TEMPS ESTIMÉ : 4H30
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Jetpack Compose : La manière moderne de créer des interfaces sur Android sans fichiers XML. L'UI est écrite
+en fonctions Kotlin annotées avec @Composable .
+Recomposition & StateFlow : Lorsque la valeur d'une température change dans le StateFlow  du ViewModel,
+Compose redessine automatiquement uniquement la jauge concernée, sans recharger tout l'écran.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Créer le composant réutilisable CircularGaugeView.kt  : une jauge semi-circulaire dessinée avec Canvas
+qui change de couleur (Vert → Orange → Rouge clignotant au-delà de 85°C).
+2. Créer le composant SparklineChart.kt  qui dessine la courbe des 30 dernières mesures de vibration avec
+un dégradé élégant.
+3. Construire DashboardViewModel.kt  qui écoute les données de TelemetryDao  via un StateFlow .
+4. Assembler l'écran complet DashboardScreen.kt  avec une grille de cartes (Card Compose) représentant
+chaque machine de l'atelier.
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+Recompositions inutiles : Utiliser remember  et des types de données immuables pour éviter que
+Jetpack Compose ne recalcule tout le canvas 60 fois par seconde.
+✅ RÉSULTAT CONCRET ATTENDU :
+L'écran principal s'anime en direct sur le téléphone : les jauges bougent de manière fluide au rythme des
+données de capteurs simulées.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 21 / 30
+Tâche 07 : [ROTATION] Algorithme de Recherche
+Hybride (FTS5 + Vector Cosine)
+ASSIGNÉ À : PERSONNE A (APPROFONDISSEMENT
+RAG)
+TEMPS ESTIMÉ : 4H00
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Similarité Cosinus : Formule mathématique qui calcule l'angle entre deux vecteurs. Si le cosinus vaut 1.0, les
+deux textes ont exactement le même sens sémantique.
+Reciprocal Rank Fusion (RRF) : Algorithme qui combine les résultats d'un moteur de recherche par mots-clés et
+d'un moteur vectoriel pour obtenir une précision bien supérieure à chacun pris isolément.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Écrire la fonction mathématique optimisée cosineSimilarity(v1: FloatArray, v2: FloatArray): Float .
+2. Implémenter la recherche vectorielle : pour une question donnée, générer son vecteur ONNX, puis calculer le
+cosinus avec tous les vecteurs stockés dans chunk_embeddings .
+3. Récupérer en parallèle les résultats de la recherche par mots-clés FTS5.
+4. Fusionner les deux classements avec la formule RRF : score = (1 / (60 + rank_fts)) + (1 / (60 +
+rank_vector)) .
+5. Créer le Use Case SearchHybridDocumentationUseCase.kt  qui renvoie les 3 meilleurs passages
+documentaires.
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+Optimisation de la boucle : Si les vecteurs sont normalisés (norme euclidienne = 1.0), la similarité
+cosinus se résume à un simple produit scalaire (Dot Product), ce qui divise le temps de calcul par 3 !
+✅ RÉSULTAT CONCRET ATTENDU :
+Une requête telle que "fuite d'huile sous le réducteur" trouve en moins de 150 millisecondes la procédure de
+colmatage exacte, même si les mots employés diffèrent légèrement du manuel.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 22 / 30
+Tâche 08 : [ROTATION] Simulation de Pannes
+d'Usine & Système d'Alertes Push
+ASSIGNÉ À : PERSONNE B (APPROFONDISSEMENT
+EMBARQUÉ)
+TEMPS ESTIMÉ : 4H00
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Détection d'Anomalie par Fenêtre Glissante : Au lieu de regarder une seule valeur isolée (qui peut être un faux
+positif dû à du bruit électrique), on analyse la moyenne mobile sur 5 secondes.
+Notifications Locales Android : Affichage d'une alerte urgente dans la barre de notifications système d'Android
+même si l'application est en arrière-plan.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Créer un bouton secret ou un menu de simulation "Injecter une Panne" sur l'application (ex: élévation brutale
+de température à 94°C sur la Pompe A1).
+2. Créer le Use Case DetectAnomalyUseCase.kt  qui surveille en continu le flux entrant.
+3. Dès que le seuil est dépassé, insérer une ligne dans la table incidents  avec le niveau de gravité
+'CRITICAL'.
+4. Déclencher une notification Android avec son d'alerte industrielle et vibration haptique.
+5. Faire en sorte qu'un clic sur la notification ouvre directement l'écran d'intervention d'urgence.
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+Permission Notification (Android 13+) : Sur les versions récentes d'Android, il faut impérativement
+demander à l'utilisateur la permission d'exécution POST_NOTIFICATIONS  au lancement de l'application.
+✅ RÉSULTAT CONCRET ATTENDU :
+L'injection d'une panne déclenche instantanément l'alerte rouge sur le téléphone et prépare l'incident pour le
+diagnostic IA.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 23 / 30
+Tâche 09 : Intégration Native C++ du Moteur LLM Local
+(Llama.cpp / GGUF)
+ASSIGNÉ À : PERSONNE A
+TEMPS ESTIMÉ : 5H00
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+JNI (Java Native Interface) & NDK : Mécanisme qui permet au code Kotlin/Java d'appeler des fonctions ultra-
+rapides écrites en C ou C++.
+Quantification 4-bit (GGUF) : Technique qui réduit la taille mémoire d'un modèle d'IA par 4 (en stockant chaque
+poids mathématique sur 4 bits au lieu de 16 bits), permettant de faire tourner un LLM de 2 milliards de
+paramètres sur un smartphone avec seulement 1.2 Go de RAM.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Configurer le fichier CMakeLists.txt  dans Android Studio pour compiler les bibliothèques C++ de
+llama.cpp .
+2. Déclarer la classe de passerelle JNI LlamaBridge.kt  avec les méthodes natives : initModel(path) ,
+generateResponse(prompt)  et freeModel() .
+3. Télécharger le modèle quantifié Phi-3-mini-4k-instruct-q4.gguf  (ou Qwen1.5-1.8B-Chat-Q4.gguf ) et le
+charger depuis le stockage interne.
+4. Configurer les paramètres d'inférence pour processeur mobile : 4 threads CPU, température de 0.2 (pour des
+réponses déterministes et sans hallucinations).
+5. Implémenter un callback C++ vers Kotlin pour envoyer chaque mot généré en temps réel (streaming de
+tokens).
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+OutOfMemoryError (OOM) : Ne jamais charger le modèle deux fois en mémoire ! Utiliser un Singleton Hilt
+pour garantir qu'une seule instance du modèle existe dans toute l'application.
+✅ RÉSULTAT CONCRET ATTENDU :
+Le modèle de langage s'exécute sur le smartphone en mode avion et génère du texte technique à une vitesse
+fluide d'au moins 12 mots par seconde.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 24 / 30
+Tâche 10 : Écran de Chat Assistant Copilot avec Streaming
+de Texte
+ASSIGNÉ À : PERSONNE B
+TEMPS ESTIMÉ : 5H00
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Streaming UI avec Coroutines : Au lieu d'attendre 10 secondes que le LLM ait fini toute sa réponse, on affiche
+chaque mot au fur et à mesure qu'il est calculé, offrant une sensation de rapidité immédiate pour l'utilisateur.
+Citations Dynamiques : Afficher sous la réponse de l'IA les extraits précis des manuels techniques utilisés, pour
+que l'opérateur puisse vérifier la source.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Créer le composant ChatMessageBubble.kt  distinguant les messages de l'opérateur (alignés à droite) et
+ceux de l'IA (alignés à gauche avec badge officiel).
+2. Créer le composant SourceCitationCard.kt  qui affiche un aperçu du document source (ex: "SOP-42, Page
+12 - Tolérance roulements").
+3. Développer AssistantViewModel.kt  avec une fonction askAssistant(query)  qui collecte les tokens émis
+par le moteur LLM et les accumule dans l'état de l'écran.
+4. Ajouter un défilement automatique vers le bas de l'écran à chaque nouveau mot avec
+LazyListState.animateScrollToItem() .
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+Saccades visuelles : Mettre à jour l'UI mot par mot peut surcharger Compose si le texte arrive trop vite.
+Grouper les tokens par paquets de 2 ou 3 si nécessaire.
+✅ RÉSULTAT CONCRET ATTENDU :
+L'opérateur discute avec l'assistant technique local, voit le texte s'écrire en direct de manière spectaculaire, et
+peut cliquer sur les cartes de sources documentaires pour lire le manuel.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 25 / 30
+Tâche 11 : Prompt Engineering Structuré & Assemblage du
+Contexte RAG
+ASSIGNÉ À : PERSONNE A
+TEMPS ESTIMÉ : 4H00
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Format ChatML / System Prompt : Structure rigide indispensable pour guider les petits modèles locaux. On
+définit son rôle ("Tu es un ingénieur expert en maintenance industrielle") et ses règles ("Réponds uniquement en
+te basant sur les documents fournis").
+Grounding (Ancrage documentaire) : Technique qui empêche le modèle d'inventer des faits imaginaires en
+l'obligeant à citer les données réelles de l'usine.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Créer la classe PromptFormatter.kt .
+2. Écrire la fonction d'injection de la télémétrie : extraire les 5 dernières minutes de mesures de la machine en
+panne depuis SQLite et les formater sous forme de tableau texte compact.
+3. Insérer les 3 extraits de documentation les plus pertinents issus de la recherche hybride RAG (Tâche 07).
+4. Structurer le prompt final avec les balises système requises par le modèle Phi-3 : <|system|> ... <|user|>
+... <|assistant|> .
+5. Tester la robustesse : vérifier que si la documentation ne contient pas la réponse, le modèle répond
+honnêtement "Information non disponible dans les manuels".
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+Dépassement de la fenêtre de contexte : Le modèle a une limite de 2048 ou 4096 tokens. Calculer la
+taille du prompt avant l'envoi et tronquer intelligemment l'historique ancien si nécessaire.
+✅ RÉSULTAT CONCRET ATTENDU :
+Le LLM produit des diagnostics ultra-précis basés à 100% sur les données réelles des capteurs et les fiches
+techniques d'usine fournies.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 26 / 30
+Tâche 12 : Moteur d'Agent Autonome & Catalogue d'Outils
+Industriels (Tool Calling)
+ASSIGNÉ À : PERSONNE B
+TEMPS ESTIMÉ : 4H30
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Agent Décisionnel (Pattern ReAct) : Au lieu de simplement discuter, l'Agent suit un cycle logique : Pensée
+(Thought) → Décision d'Action → Observation du résultat → Conclusion.
+Tool Calling / Function Calling : Capacité du modèle à générer une commande structurée (ex: JSON) que notre
+code Kotlin intercepte pour déclencher une action physique réelle sur l'équipement.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Créer la classe ToolRegistry.kt  qui enregistre la liste des outils autorisés :
+- activer_refroidissement(machine_id, puissance_pct)
+- arreter_urgence(machine_id)
+- reinitialiser_disjoncteur(machine_id) .
+2. Expliquer ces outils dans le System Prompt de l'Agent avec leur signature JSON.
+3. Créer le parseur de réponse AgentOutputParser.kt  qui extrait automatiquement le bloc d'action généré par
+le LLM.
+4. Connecter chaque outil à une action concrète (envoi d'un message MQTT d'ordre ou simulation immédiate
+avec mise à jour du statut en base).
+⚠️ PIÈGES COURANTS DE DÉBUTANT & ASTUCES :
+JSON mal formaté : Les petits modèles locaux oublient parfois une accolade fermante. Utiliser un
+parseur tolérant avec blocs try / catch  pour ne jamais faire planter l'application.
+✅ RÉSULTAT CONCRET ATTENDU :
+L'Agent 
+analyse 
+l'incident 
+de 
+surchauffe 
+et 
+décide 
+de 
+lui-même 
+d'invoquer 
+la 
+fonction
+activer_refroidissement("PUMP_01", 80) .
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 27 / 30
+Tâche 13 : Garde-fou Sécurité "Human-in-the-Loop" &
+Validation Opérateur
+ASSIGNÉ À : PERSONNE B
+TEMPS ESTIMÉ : 3H30
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Human-in-the-Loop (HITL) : Principe de sécurité obligatoire dans l'industrie critique selon lequel une
+intelligence artificielle ne peut jamais commander directement un équipement lourd sans autorisation explicite
+d'un être humain responsable.
+Bouton Glissant (Swipe to Confirm) : Évite tout déclenchement accidentel par rapport à un simple clic.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Créer le composant graphique SwipeToConfirmButton.kt  en Jetpack Compose.
+2. Lorsqu'un outil critique est proposé par l'Agent, afficher une boîte de dialogue d'alerte claire indiquant : la
+machine ciblée, l'action proposée et la justification de l'IA.
+3. L'action reste en attente (statut 'EN_ATTENTE_VALIDATION'). Si l'opérateur glisse le bouton, l'action est
+exécutée ; s'il clique sur "Refuser", l'action est annulée.
+4. Ajouter une synthèse vocale (Android Text-To-Speech) qui énonce à voix haute l'action validée pour
+sécuriser l'environnement d'atelier.
+✅ RÉSULTAT CONCRET ATTENDU :
+Aucun ordre physique ne peut partir sans la validation visuelle et tactile formelle de l'opérateur humain.
+Tâche 14 : Journal d'Audit & Traçabilité Inaltérable dans
+SQLite
+ASSIGNÉ À : PERSONNE A
+TEMPS ESTIMÉ : 3H30
+🎓 CONCEPTS & NOTIONS CLÉS À COMPRENDRE :
+Explicabilité & Auditabilité de l'IA (AI Act) : Toute décision prise avec l'assistance d'un algorithme doit pouvoir
+être justifiée après coup lors d'un audit de sécurité industriel.
+Journal séquentiel d'audit : Enregistrement détaillé comprenant la situation initiale, le texte du prompt, le
+raisonnement du modèle, la décision humaine et le résultat.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Implémenter l'enregistrement systématique dans la table agent_audit_trail  dès qu'une action est
+proposée ou validée.
+2. Créer l'écran AuditLogScreen.kt  permettant de filtrer les interventions par date, machine et type d'action.
+3. Ajouter un bouton "Exporter le Rapport" générant un fichier texte récapitulatif prêt à être partagé avec
+l'équipe de maintenance.
+✅ RÉSULTAT CONCRET ATTENDU :
+Un historique complet et transparent de toutes les interactions avec l'IA est consultable directement depuis
+l'application.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 28 / 30
+Tâche 15 : Tests d'Intégration Conjoints, Benchmarks
+& Vidéo Démonstration
+ASSIGNÉ À : PERSONNE A & PERSONNE B (EN DUO)
+TEMPS ESTIMÉ : 5H00
+🎓 OBJECTIFS DU TRAVAIL EN DUO :
+Valider la robustesse de l'application dans des conditions extrêmes et préparer le matériel de présentation pour
+les recruteurs.
+📝 GUIDE D'EXÉCUTION PAS À PAS :
+1. Test Mode Avion 100% Hors-Ligne : Couper tout réseau (Wi-Fi, 4G) sur le terminal de test et exécuter
+l'ensemble du cycle : réception de fausse panne → calcul d'embeddings → recherche RAG → inférence LLM
+→ validation d'action. Vérifier qu'aucune erreur ne se produit.
+2. Mesure de la RAM : Utiliser l'Android Studio Profiler pour vérifier que la mémoire totale consommée reste
+strictement sous 1.8 Go.
+3. Revue de Code Croisée : Personne A relit tout le code écrit par Personne B, et Personne B relit le code de
+Personne A pour s'assurer que chacun est capable d'expliquer chaque ligne.
+4. Enregistrement d'une Vidéo de Démonstration (2 minutes) : Filmer le scénario complet en direct pour
+pouvoir joindre la vidéo à vos candidatures et profils LinkedIn.
+5. Rédaction du README GitHub : Documenter le projet avec diagrammes d'architecture, captures d'écran et
+instructions d'installation.
+✅ RÉSULTAT CONCRET ATTENDU :
+L'application est testée, stabilisée, documentée et prête à être présentée avec fierté lors d'un entretien
+d'embauche.
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 29 / 30
+8. PLANNING GLOBAL & POINTS DE SYNCHRONISATION
+8.1 Calendrier d'Enchaînement Chronologique (10 Jours Ouvrés)
+JOUR
+TRAVAIL DE PERSONNE A
+TRAVAIL DE PERSONNE B
+STATUT
+J1
+T01 : Setup Android, Architecture Clean &
+Hilt
+T02 : Intégration SDK ONNX & Setup
+Client MQTT
+SOCLE
+J2
+T03 : Entités Télémétrie, DAOs & Parser
+CSV Kaggle
+T04 : Entités RAG, Table Virtuelle FTS5 &
+Vector Store
+DATA DB
+J3
+T05 (Rotation IA) : Chunking &
+Embeddings ONNX
+T06 (Rotation UI) : Jauges & Dashboard
+Jetpack Compose
+ROTATION
+J4
+T07 (Rotation IA) : Algorithme Recherche
+Hybride RRF
+T08 (Rotation Embarqué) : Simulateur
+Pannes & Alertes
+ROTATION
+J5
+🤝 POINT DE SYNCHRONISATION 1 : Pair-Programming & Validation de la Semaine 1
+Test complet du flux : Donnée MQTT → SQLite → Détection Anomalie → Recherche RAG
+Hybride locale.
+JALON 1
+J6
+T09 : Moteur LLM local C++ (llama.cpp /
+JNI)
+T10 : Interface Chat Copilot avec
+Streaming de Tokens
+LLM EDGE
+J7
+T11 : Formatage Prompts & Injection
+Contexte RAG
+T12 : Catalogue d'Outils Industriels (Tool
+Calling)
+AGENTIC
+J8
+T14 : Traçabilité & Journal d'Audit SQLite
+T13 : Sécurité Human-in-the-Loop
+(Swipe de confirmation)
+SAFETY
+J9
+Optimisations Requêtes SQL & Indexation
+avancée
+Tests de Résilience Hors-Ligne &
+Profilage Mémoire RAM
+ROBUSTESSE
+J10
+🏆 POINT DE SYNCHRONISATION 2 : Packaging Final, Démo & Préparation
+Recrutement
+Enregistrement vidéo de démo, finalisation du README GitHub et entraînement aux
+questions d'entretien.
+LIVRABLE
+8.2 Rituels Pédagogiques & Points de Synchronisation Obligatoires
+📌 LES 3 RITUELS QUOTIDIENS POUR DÉBUTANTS
+1. Le Standup du Matin (15 minutes) : Chaque matin à 9h00, Personne A et Personne B répondent à 3
+questions simples : Qu'ai-je fait hier ? Que vais-je faire aujourd'hui ? Quels sont mes points de blocage ?
+2. Le Checkpoint d'Après-Midi (14h00 - 15 minutes) : Vérification de la compatibilité des interfaces (ex:
+vérifier que le format des données produit par A correspond exactement à ce qu'attend le composant de
+B).
+3. La Revue de Code du Soir (17h30 - 30 minutes) : Avant de pousser sur Git, chaque personne explique
+son code à l'autre. Si l'autre ne comprend pas, le code doit être simplifié ou commenté. C'est le secret
+pour apprendre deux fois plus vite !
+SMARTFACTORY EDGE-AI - GUIDE PÉDAGOGIQUE & CAHIER DES CHARGES
+Page 30 / 30
+SmartFactory Edge-AI & Agent RAG — Cahier des Charges Technologique Exhaustif & Guide d'Apprentissage.
+Document généré automatiquement au format d'impression officiel A4.

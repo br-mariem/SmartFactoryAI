@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.random.Random
+import com.smartfactory.ai.domain.usecase.DetectAnomalyUseCase
 
 // Modèle simple pour représenter l'état d'une machine à l'écran
 data class MachineUiState(
@@ -20,7 +21,9 @@ data class MachineUiState(
 )
 
 @HiltViewModel
-class DashboardViewModel @Inject constructor() : ViewModel() {
+class DashboardViewModel @Inject constructor(
+    private val detectAnomalyUseCase: DetectAnomalyUseCase
+) : ViewModel() {
 
     // L'état de notre écran : une liste de machines
     private val _machinesState = MutableStateFlow<List<MachineUiState>>(emptyList())
@@ -54,6 +57,9 @@ class DashboardViewModel @Inject constructor() : ViewModel() {
                     val newVibration = Random.nextFloat() * 10 + 10
                     val newVibrationsList = machine.vibrations.drop(1) + newVibration
 
+                    // ---> NOUVEAU (Tâche 08) : On demande au veilleur de nuit de vérifier !
+                    detectAnomalyUseCase.checkTemperature(machine.id, machine.name, newTemp)
+
                     machine.copy(
                         temperature = newTemp,
                         vibrations = newVibrationsList
@@ -64,5 +70,23 @@ class DashboardViewModel @Inject constructor() : ViewModel() {
                 _machinesState.value = updatedMachines
             }
         }
+    }
+
+    // Fonction déclenchée par le gros bouton rouge "Simuler Panne"
+    fun injectFailure(machineId: String) {
+        val currentMachines = _machinesState.value
+        val updatedMachines = currentMachines.map { machine ->
+            if (machine.id == machineId) {
+                // On monte la température d'un coup à 94°C !
+                val fakeTemp = 94f
+                // On demande directement au veilleur de nuit de hurler
+                detectAnomalyUseCase.checkTemperature(machine.id, machine.name, fakeTemp)
+                
+                machine.copy(temperature = fakeTemp)
+            } else {
+                machine
+            }
+        }
+        _machinesState.value = updatedMachines
     }
 }
